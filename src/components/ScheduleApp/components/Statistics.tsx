@@ -9,7 +9,7 @@ import {
   CardContent
 } from '@/components/ui/card/card';
 import { Tooltip } from '@/components/ui/tooltip/tooltip';
-import type { Box, Schedule, Restriction } from '../types';
+import type { Box, Schedule, Restriction } from '@/types';
 
 interface StatisticsProps {
   boxes: Box[];
