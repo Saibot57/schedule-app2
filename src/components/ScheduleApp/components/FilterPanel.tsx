@@ -15,7 +15,7 @@ interface FilterPanelProps {
 export function FilterPanel({ filter, setFilter }: FilterPanelProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
-  const conditions = [
+  const conditions: Array<{ value: Filter['condition']; label: string }> = [
     { value: 'both', label: 'Båda' },
     { value: 'neither', label: 'Ingen' },
     { value: 'x-not-y', label: 'X men inte Y' }
@@ -55,7 +55,7 @@ export function FilterPanel({ filter, setFilter }: FilterPanelProps) {
             <label className="text-sm font-medium">Villkor</label>
             <Select
               value={filter.condition}
-              onChange={(e) => setFilter({ ...filter, condition: e.target.value })}
+              onChange={(e) => setFilter({ ...filter, condition: e.target.value as Filter['condition'] })}
               options={conditions}
               placeholder="Välj villkor"
             />

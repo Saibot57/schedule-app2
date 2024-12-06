@@ -36,6 +36,12 @@ export interface Filter {
   condition: 'both' | 'neither' | 'x-not-y';
 }
 
+export interface ScheduleState {
+  boxes: Box[];
+  schedule: Schedule;
+  restrictions: Restriction[];
+}
+
 export const TIME_PERIODS = [
   '8:30-9:30',
   '9:40-10:40',
