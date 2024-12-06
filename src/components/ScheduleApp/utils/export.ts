@@ -27,31 +27,32 @@ export async function exportToPDF(scheduleRef: HTMLDivElement): Promise<void> {
 
 export function exportToJSON(boxes: Box[], schedule: Schedule, restrictions: Restriction[]): void {
   const scheduleData: ScheduleData = {
-    boxes: boxes.map(box => ({
+    boxes: boxes.map((box) => ({
       ...box,
-      initialQuantity: box.initialQuantity || box.quantity
+      initialQuantity: box.initialQuantity || box.quantity,
     })),
     schedule,
     restrictions,
-    exportDate: new Date().toISOString()
+    exportDate: new Date().toISOString(),
   };
 
   const blob = new Blob([JSON.stringify(scheduleData, null, 2)], {
-    type: 'application/json'
+    type: 'application/json',
   });
   const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'schema-export.json';
-  a.click();
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'schema-export.json';
+  link.click();
   URL.revokeObjectURL(url);
 }
 
-export function validateImportedData(data: any): data is ScheduleData {
+export function validateImportedData(data: unknown): data is ScheduleData {
   return (
-    data &&
-    Array.isArray(data.boxes) &&
-    typeof data.schedule === 'object' &&
-    Array.isArray(data.restrictions)
+    typeof data === 'object' &&
+    data !== null &&
+    Array.isArray((data as ScheduleData).boxes) &&
+    typeof (data as ScheduleData).schedule === 'object' &&
+    Array.isArray((data as ScheduleData).restrictions)
   );
 }

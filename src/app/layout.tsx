@@ -1,4 +1,5 @@
 "use client";
+
 import { Inter } from 'next/font/google';
 import { useState, useEffect } from 'react';
 import html2canvas from 'html2canvas';
@@ -6,6 +7,7 @@ import jsPDF from 'jspdf';
 import './globals.css';
 import { HeaderActions } from '@/components/ScheduleApp/components/HeaderActions';
 import { initializeColorSystem, importColors } from '../colorManagement';
+import { Box, Schedule, Restriction, ScheduleState } from '../types'; // Adjust the import path as needed
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -22,9 +24,16 @@ export default function RootLayout({ children }: RootLayoutProps) {
   useEffect(() => {
     const boxes = localStorage.getItem('boxes');
     if (boxes) {
-      const parsedBoxes = JSON.parse(boxes);
-      const existingColors = parsedBoxes.map((box: any) => box.color);
-      importColors(existingColors);
+      const parsedBoxes: Box[] = JSON.parse(boxes);
+      
+      // **Change Made Here:**
+      // Instead of mapping to an array of colors (string[]), map to an array of objects with className and color.
+      const boxData: Array<{ className: string; color: string }> = parsedBoxes.map((box: Box) => ({
+        className: box.className,
+        color: box.color
+      }));
+      
+      importColors(boxData);
     } else {
       initializeColorSystem();
     }
@@ -33,13 +42,13 @@ export default function RootLayout({ children }: RootLayoutProps) {
   const handleClearSchedule = () => {
     if (window.confirm('Är du säker på att du vill rensa schemat?')) {
       // Clear all schedule-related items
-      localStorage.removeItem('scheduleState');  // This contains boxes, schedule, and restrictions
+      localStorage.removeItem('scheduleState'); // This contains boxes, schedule, and restrictions
       localStorage.removeItem('schedule');
       localStorage.removeItem('boxes');
-      
+
       // Reset color system
       initializeColorSystem();
-      
+
       // Force a complete reset of the application state
       window.location.reload();
     }
@@ -48,15 +57,15 @@ export default function RootLayout({ children }: RootLayoutProps) {
   const handleExportSchedule = async () => {
     try {
       setIsExporting(true);
-      
+
       // Get the complete schedule state
       const savedState = localStorage.getItem('scheduleState');
       if (!savedState) {
         throw new Error('No schedule state found');
       }
 
-      const scheduleState = JSON.parse(savedState);
-      
+      const scheduleState: ScheduleState = JSON.parse(savedState);
+
       const blob = new Blob([JSON.stringify(scheduleState, null, 2)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -77,27 +86,27 @@ export default function RootLayout({ children }: RootLayoutProps) {
   const handleImportSchedule = async () => {
     try {
       setIsImporting(true);
-      
+
       const input = document.createElement('input');
       input.type = 'file';
       input.accept = '.json';
-      
+
       input.onchange = async (e) => {
         const file = (e.target as HTMLInputElement).files?.[0];
         if (!file) return;
-  
+
         const reader = new FileReader();
-        
+
         reader.onerror = (error) => {
           console.error('FileReader error:', error);
           alert('Läsning av filen misslyckades.');
         };
-  
+
         reader.onload = (event) => {
           try {
             const content = event.target?.result as string;
-            const data = JSON.parse(content);
-  
+            const data: ScheduleState = JSON.parse(content);
+
             // Validate the imported data structure
             if (!data.boxes || !Array.isArray(data.boxes)) {
               throw new Error('Invalid boxes data');
@@ -108,9 +117,9 @@ export default function RootLayout({ children }: RootLayoutProps) {
             if (!Array.isArray(data.restrictions)) {
               throw new Error('Invalid restrictions data');
             }
-  
+
             // Ensure boxes have the required properties
-            data.boxes = data.boxes.map((box: any) => ({
+            data.boxes = data.boxes.map((box: Box) => ({
               id: box.id,
               className: box.className,
               teacher: box.teacher,
@@ -119,23 +128,21 @@ export default function RootLayout({ children }: RootLayoutProps) {
               usageCount: box.usageCount || 0,
               initialQuantity: box.initialQuantity || box.quantity
             }));
-  
+
             // Import colors if they exist
-            if (data.boxes && Array.isArray(data.boxes)) {
-              const boxData = data.boxes.map((box: any) => ({
-                className: box.className,
-                color: box.color
-              }));
-              importColors(boxData);
-            }
-            
+            const boxData = data.boxes.map((box: Box) => ({
+              className: box.className,
+              color: box.color
+            }));
+            importColors(boxData);
+
             // Save the complete state
-            const stateToSave = {
+            const stateToSave: ScheduleState = {
               boxes: data.boxes,
               schedule: data.schedule,
               restrictions: data.restrictions
             };
-            
+
             localStorage.setItem('scheduleState', JSON.stringify(stateToSave));
             window.location.reload();
           } catch (error) {
@@ -143,10 +150,10 @@ export default function RootLayout({ children }: RootLayoutProps) {
             alert('Import misslyckades. Kontrollera filformatet: ' + (error as Error).message);
           }
         };
-  
+
         reader.readAsText(file);
       };
-  
+
       input.click();
     } catch (error) {
       console.error('Import failed:', error);
@@ -155,28 +162,33 @@ export default function RootLayout({ children }: RootLayoutProps) {
       setIsImporting(false);
     }
   };
+
   const handleSaveSchedule = async () => {
     try {
       setIsSaving(true);
-      
+
       // Use the scheduleRef to get the correct element
-      const scheduleElement = document.querySelector('[ref="scheduleRef"]') || 
-                            document.querySelector('.mb-8.overflow-x-auto');
-                            
+      const scheduleElement =
+        document.querySelector('[ref="scheduleRef"]') ||
+        document.querySelector('.mb-8.overflow-x-auto');
+
       if (!scheduleElement) {
         throw new Error('Schedule element not found');
       }
-  
+
       // Add temporary styles for better PDF output
       const originalStyle = scheduleElement.getAttribute('style') || '';
-      scheduleElement.setAttribute('style', `${originalStyle}; background-color: white; padding: 20px;`);
-      
+      scheduleElement.setAttribute(
+        'style',
+        `${originalStyle}; background-color: white; padding: 20px;`
+      );
+
       // Add temporary style to hide PDF-excluded elements
       const style = document.createElement('style');
       style.id = 'pdf-temp-style'; // Add an ID for easier cleanup
       style.textContent = '.pdf-hide { display: none !important; }';
       document.head.appendChild(style);
-  
+
       const canvas = await html2canvas(scheduleElement as HTMLElement, {
         scale: 2,
         logging: false,
@@ -186,28 +198,28 @@ export default function RootLayout({ children }: RootLayoutProps) {
         windowWidth: scheduleElement.scrollWidth,
         windowHeight: scheduleElement.scrollHeight
       });
-  
+
       // Cleanup: Remove the temporary style and restore original styles
       scheduleElement.setAttribute('style', originalStyle);
       const tempStyle = document.getElementById('pdf-temp-style');
       if (tempStyle) {
         tempStyle.remove();
       }
-  
+
       const pdf = new jsPDF({
         orientation: 'landscape',
         unit: 'mm',
         format: 'a4'
       });
-  
+
       // Calculate dimensions while maintaining aspect ratio
       const imgWidth = 297; // A4 landscape width in mm
       const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      
+
       // Center the content if it's smaller than the page
       const xOffset = Math.max(0, (297 - imgWidth) / 2);
       const yOffset = Math.max(0, (210 - imgHeight) / 2);
-  
+
       pdf.addImage(
         canvas.toDataURL('image/jpeg', 1.0),
         'JPEG',
@@ -216,7 +228,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
         imgWidth,
         imgHeight
       );
-  
+
       pdf.save(`schema-${new Date().toISOString().split('T')[0]}.pdf`);
     } catch (error) {
       console.error('PDF export failed:', error);

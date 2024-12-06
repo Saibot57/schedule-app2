@@ -16,13 +16,19 @@ export function TooltipProvider({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
-// Create TooltipTrigger for compatibility
-export function TooltipTrigger({ children, asChild, ...props }: { children: React.ReactNode; asChild?: boolean; [key: string]: any }) {
+// Updated TooltipTrigger for compatibility without unused props
+export function TooltipTrigger({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
-// Create TooltipContent for compatibility
-export function TooltipContent({ children, className, ...props }: { children: React.ReactNode; className?: string; [key: string]: any }) {
+// Define specific prop types for TooltipContent
+interface TooltipContentProps extends React.HTMLAttributes<HTMLDivElement> {
+  children: React.ReactNode;
+  className?: string;
+}
+
+// Updated TooltipContent with proper typing
+export function TooltipContent({ children, className, ...props }: TooltipContentProps) {
   return <div className={className} {...props}>{children}</div>;
 }
 

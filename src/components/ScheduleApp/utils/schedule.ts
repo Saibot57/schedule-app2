@@ -7,7 +7,7 @@ export function generateColor(number: number): string {
 
 export function getBoxPlacements(boxId: number, schedule: Schedule): string {
   return Object.entries(schedule)
-    .filter(([_, id]) => id === boxId)
+    .filter(([, id]) => id === boxId)
     .map(([key]) => {
       const [day, time] = key.split('-');
       return `${day} ${time}`;
@@ -43,15 +43,13 @@ export function getConflicts(
   const box = boxes.find(b => b.id === boxId);
   if (!box) return [];
 
-  // Get all boxes in same time slot
   const timeSlotBoxIds = Object.entries(schedule)
     .filter(([key]) => {
       const [slotDay, slotTime] = key.split('-');
       return slotDay === day && slotTime.startsWith(time);
     })
-    .map(([_, id]) => id);
+    .map(([, id]) => id);
 
-  // Filter for boxes that have pattern conflicts
   return timeSlotBoxIds.filter(id => {
     const otherBox = boxes.find(b => b.id === id);
     if (!otherBox || otherBox.id === boxId) return false;

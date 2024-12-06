@@ -3,7 +3,7 @@
 import React from 'react';
 import { ScheduleSlot } from './ScheduleSlot';
 import { SlotInfo } from './SlotInfo';
-import type { Box, Schedule, Filter, HoverInfo, Restriction } from '../../types';
+import type { Box, Schedule, Filter, Restriction, HoverInfo } from '../../types';
 import { DAYS, TIME_PERIODS } from '../../types';
 import { getBoxInSlot, getConflicts, checkRestrictions } from '../../utils/schedule';
 
@@ -14,10 +14,6 @@ interface ScheduleGridProps {
   filter: Filter;
   draggedBox: Box | null;
   scheduleRef: React.RefObject<HTMLDivElement>;
-  setBoxes: React.Dispatch<React.SetStateAction<Box[]>>;
-  setSchedule: React.Dispatch<React.SetStateAction<Schedule>>;
-  activeBoxId: number | null;
-  hoveredSlot: { day: string | null; time: string | null; };
   onDrop: (day: string, time: string, slotIndex: number) => void;
   onSlotClick: (day: string, time: string, slotIndex: number) => void;
   onSlotHover: (day: string | null, time: string | null) => void;
@@ -30,10 +26,6 @@ export function ScheduleGrid({
   filter,
   draggedBox,
   scheduleRef,
-  setBoxes,
-  setSchedule,
-  activeBoxId,
-  hoveredSlot,
   onDrop,
   onSlotClick,
   onSlotHover

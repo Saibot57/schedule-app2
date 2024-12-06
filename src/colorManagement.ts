@@ -1,6 +1,6 @@
-// utils/colorManagement.ts
+// src/utils/colorManagement.ts
 
-const BASE_COLORS = [
+const BASE_COLORS: readonly string[] = [
   '#FFB3BA', // Light pink
   '#BAFFC9', // Light green
   '#BAE1FF', // Light blue
@@ -11,12 +11,12 @@ const BASE_COLORS = [
   '#DDA0DD', // Plum
   '#F0E68C', // Khaki
   '#87CEEB', // Sky blue
-];
+] as const;
 
 // Map class names to their assigned colors
-let classColorMap = new Map<string, string>();
+const classColorMap: Map<string, string> = new Map<string, string>();
 
-export const initializeColorSystem = () => {
+export const initializeColorSystem = (): void => {
   classColorMap.clear();
 };
 
@@ -33,7 +33,7 @@ export const generateBoxColor = (className: string, preferredColor?: string): st
   }
 
   // Find first unused color
-  const usedColors = new Set(classColorMap.values());
+  const usedColors = new Set<string>(classColorMap.values());
   const availableColor = BASE_COLORS.find(color => !usedColors.has(color));
   
   if (availableColor) {
@@ -48,7 +48,7 @@ export const generateBoxColor = (className: string, preferredColor?: string): st
   return newColor;
 };
 
-export const releaseColor = (className: string) => {
+export const releaseColor = (className: string): void => {
   classColorMap.delete(className);
 };
 
@@ -65,9 +65,9 @@ const generateVariation = (baseColor: string, index: number): string => {
   return `#${newR.toString(16).padStart(2, '0')}${newG.toString(16).padStart(2, '0')}${newB.toString(16).padStart(2, '0')}`;
 };
 
-export const importColors = (boxes: Array<{className: string, color: string}>) => {
+export const importColors = (boxes: Array<{ className: string; color: string }>): void => {
   initializeColorSystem();
-  boxes.forEach(({className, color}) => {
+  boxes.forEach(({ className, color }) => {
     classColorMap.set(className, color);
   });
 };

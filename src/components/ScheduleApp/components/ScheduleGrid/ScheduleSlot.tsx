@@ -54,8 +54,8 @@ export function ScheduleSlot({
 
     const timeSlotKey = `${day}-${time}`;
     const conflictingBoxes = Object.entries(schedule)
-      .filter(([key, _]) => key.startsWith(timeSlotKey))
-      .map(([_, boxId]) => boxes.find(b => b.id === boxId))
+      .filter(([key]) => key.startsWith(timeSlotKey))
+      .map(([, boxId]) => boxes.find(b => b.id === boxId))
       .filter((b): b is Box => b !== undefined);
 
     console.log('Boxes in same time slot:', conflictingBoxes);
@@ -107,7 +107,7 @@ export function ScheduleSlot({
         ${isRestricted ? 'ring-2 ring-offset-2 ring-red-500 shake' : ''}
       `}
       style={{
-        ...box ? { backgroundColor: box.color } : {},
+        ...(box ? { backgroundColor: box.color } : {}),
         animation: isRestricted ? 'shake 0.5s ease-in-out' : 'none'
       }}
       onDragOver={handleDragOver}
