@@ -1,3 +1,4 @@
+// Your existing interfaces
 export interface Box {
   id: number;
   className: string;
