@@ -21,10 +21,6 @@ export default function ScheduleApp() {
     label2: '',
     condition: 'both'
   });
-  const [hoveredSlot, setHoveredSlot] = useState<{ day: string | null; time: string | null }>({
-    day: null,
-    time: null
-  });
 
   const scheduleRef = useRef<HTMLDivElement>(null);
 
@@ -114,16 +110,17 @@ export default function ScheduleApp() {
       <FilterPanel filter={filter} setFilter={setFilter} />
       
       <ScheduleGrid
-  boxes={boxes}
-  schedule={schedule}
-  restrictions={restrictions}
-  filter={filter}
-  draggedBox={draggedBox}
-  scheduleRef={scheduleRef}
-  onDrop={handleDrop}
-  onSlotClick={handleSlotClick}
-  onSlotHover={(day, time) => setHoveredSlot({ day, time })}
-  
+        boxes={boxes}
+        schedule={schedule}
+        restrictions={restrictions}
+        filter={filter}
+        draggedBox={draggedBox}
+        scheduleRef={scheduleRef}
+        onDrop={handleDrop}
+        onSlotClick={handleSlotClick}
+        onSlotHover={(day, time) => {
+          // Handle hover state directly in the callback
+        }}
       />
       
       <div className="flex gap-4">
