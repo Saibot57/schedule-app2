@@ -1,48 +1,17 @@
 // src/utils/colorManagement.ts
 
-// Expanded base colors with more variety
-const BASE_COLORS: readonly string[] = [
-  // Pastels
-  '#FFB3BA', // Light pink
-  '#BAFFC9', // Light green
-  '#BAE1FF', // Light blue
-  '#FFFFBA', // Light yellow
-  '#E2BAFF', // Light purple
-  '#FFE4B5', // Moccasin
-  '#98FB98', // Pale green
-  '#DDA0DD', // Plum
-  '#87CEEB', // Sky blue
-  '#F0E68C', // Khaki
-  // Soft colors
-  '#E6B3B3', // Soft red
-  '#B3E6B3', // Soft green
-  '#B3B3E6', // Soft blue
-  '#E6E6B3', // Soft yellow
-  '#E6B3E6', // Soft purple
-  // Medium intensity
-  '#FF9999', // Medium red
-  '#99FF99', // Medium green
-  '#9999FF', // Medium blue
-  '#FFFF99', // Medium yellow
-  '#FF99FF', // Medium purple
-] as const;
-
-// Map class names to their assigned colors
-const classColorMap: Map<string, string> = new Map<string, string>();
-
-// HSL color type for better color manipulation
 interface HSLColor {
   h: number;
   s: number;
   l: number;
 }
 
-// Convert hex to HSL for better color manipulation
-function hexToHSL(hex: string): HSLColor {
-  // Remove the # if present
-  hex = hex.replace(/^#/, '');
+// Map to store class name to color assignments
+const classColorMap: Map<string, string> = new Map<string, string>();
 
-  // Parse the RGB values
+// Convert hex to HSL
+function hexToHSL(hex: string): HSLColor {
+  hex = hex.replace(/^#/, '');
   const r = parseInt(hex.slice(0, 2), 16) / 255;
   const g = parseInt(hex.slice(2, 4), 16) / 255;
   const b = parseInt(hex.slice(4, 6), 16) / 255;
@@ -56,51 +25,37 @@ function hexToHSL(hex: string): HSLColor {
   if (max !== min) {
     const d = max - min;
     s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-    
     switch (max) {
-      case r:
-        h = (g - b) / d + (g < b ? 6 : 0);
-        break;
-      case g:
-        h = (b - r) / d + 2;
-        break;
-      case b:
-        h = (r - g) / d + 4;
-        break;
+      case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+      case g: h = (b - r) / d + 2; break;
+      case b: h = (r - g) / d + 4; break;
     }
-    
     h /= 6;
   }
 
   return { h: h * 360, s: s * 100, l: l * 100 };
 }
 
-// Convert HSL back to hex
+// Convert HSL to hex
 function HSLToHex({ h, s, l }: HSLColor): string {
   h /= 360;
   s /= 100;
   l /= 100;
+  
+  const hue2rgb = (p: number, q: number, t: number) => {
+    if (t < 0) t += 1;
+    if (t > 1) t -= 1;
+    if (t < 1/6) return p + (q - p) * 6 * t;
+    if (t < 1/2) return q;
+    if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+    return p;
+  };
 
-  let r: number, g: number, b: number;
-
-  if (s === 0) {
-    r = g = b = l;
-  } else {
-    const hue2rgb = (p: number, q: number, t: number) => {
-      if (t < 0) t += 1;
-      if (t > 1) t -= 1;
-      if (t < 1/6) return p + (q - p) * 6 * t;
-      if (t < 1/2) return q;
-      if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
-      return p;
-    };
-
-    const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
-    const p = 2 * l - q;
-    r = hue2rgb(p, q, h + 1/3);
-    g = hue2rgb(p, q, h);
-    b = hue2rgb(p, q, h - 1/3);
-  }
+  const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+  const p = 2 * l - q;
+  const r = hue2rgb(p, q, h + 1/3);
+  const g = hue2rgb(p, q, h);
+  const b = hue2rgb(p, q, h - 1/3);
 
   const toHex = (x: number) => {
     const hex = Math.round(x * 255).toString(16);
@@ -110,29 +65,66 @@ function HSLToHex({ h, s, l }: HSLColor): string {
   return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
 }
 
-// Generate a variation of a color that's visually distinct
-function generateVariation(baseColor: string, index: number): string {
-  const hsl = hexToHSL(baseColor);
+// Calculate color difference using Delta E
+function getColorDifference(color1: HSLColor, color2: HSLColor): number {
+  // Weighted differences for HSL
+  const hDiff = Math.abs(color1.h - color2.h);
+  const sDiff = Math.abs(color1.s - color2.s);
+  const lDiff = Math.abs(color1.l - color2.l);
   
-  // Rotate hue by golden angle multiples for maximum distinction
-  const goldenAngle = 137.5;
-  hsl.h = (hsl.h + goldenAngle * (index + 1)) % 360;
+  // Normalize hue difference considering the circular nature of hue
+  const normalizedHDiff = Math.min(hDiff, 360 - hDiff);
   
-  // Alternate between lighter and darker versions
-  if (index % 2 === 0) {
-    hsl.l = Math.min(90, hsl.l + 10);
-  } else {
-    hsl.l = Math.max(40, hsl.l - 10);
-  }
-  
-  // Alternate saturation as well for more variety
-  if (index % 3 === 0) {
-    hsl.s = Math.min(90, hsl.s + 15);
-  } else if (index % 3 === 1) {
-    hsl.s = Math.max(30, hsl.s - 15);
-  }
+  // Weight the differences (hue differences are most important for distinction)
+  return normalizedHDiff * 0.7 + sDiff * 0.2 + lDiff * 0.1;
+}
 
-  return HSLToHex(hsl);
+// Generate a base color using the class name
+function generateBaseHue(className: string): number {
+  // Use string hash to generate initial hue
+  let hash = 0;
+  for (let i = 0; i < className.length; i++) {
+    hash = className.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  
+  // Convert hash to hue (0-360)
+  return Math.abs(hash % 360);
+}
+
+// Check if a color is too similar to existing colors
+function isColorTooSimilar(newColor: HSLColor, existingColors: HSLColor[]): boolean {
+  const minDifference = 30; // Minimum difference threshold
+  return existingColors.some(existing => 
+    getColorDifference(newColor, existing) < minDifference
+  );
+}
+
+// Generate a new distinct color
+function generateDistinctColor(className: string, existingColors: HSLColor[]): string {
+  const baseHue = generateBaseHue(className);
+  let hue = baseHue;
+  let saturation = 70 + Math.random() * 20; // 70-90%
+  let lightness = 75 + Math.random() * 10;  // 75-85%
+  
+  // Try different hues until we find a distinct color
+  let attempts = 0;
+  const maxAttempts = 36;
+  const goldenAngle = 137.5;
+  
+  let color: HSLColor = { h: hue, s: saturation, l: lightness };
+  
+  while (isColorTooSimilar(color, existingColors) && attempts < maxAttempts) {
+    // Rotate hue by golden angle
+    hue = (baseHue + goldenAngle * attempts) % 360;
+    // Alternate saturation and lightness
+    saturation = 70 + (attempts % 3) * 10;
+    lightness = 75 + (attempts % 2) * 10;
+    
+    color = { h: hue, s: saturation, l: lightness };
+    attempts++;
+  }
+  
+  return HSLToHex(color);
 }
 
 export const initializeColorSystem = (): void => {
@@ -140,41 +132,25 @@ export const initializeColorSystem = (): void => {
 };
 
 export const generateBoxColor = (className: string, preferredColor?: string): string => {
-  // If this class already has a color, use it
+  // Return existing color if already assigned
   if (classColorMap.has(className)) {
     return classColorMap.get(className)!;
   }
 
-  // If preferred color is provided and not in use, use it
+  // Use preferred color if provided and not in use
   if (preferredColor && !Array.from(classColorMap.values()).includes(preferredColor)) {
     classColorMap.set(className, preferredColor);
     return preferredColor;
   }
 
-  // Find first unused base color
-  const usedColors = new Set<string>(classColorMap.values());
-  const availableBaseColor = BASE_COLORS.find(color => !usedColors.has(color));
+  // Get all existing colors in HSL format
+  const existingColors = Array.from(classColorMap.values()).map(hexToHSL);
   
-  if (availableBaseColor) {
-    classColorMap.set(className, availableBaseColor);
-    return availableBaseColor;
-  }
-
-  // Generate a new variation based on the class name to ensure consistency
-  const baseColor = BASE_COLORS[className.length % BASE_COLORS.length];
-  const variationIndex = Math.floor(classColorMap.size / BASE_COLORS.length);
-  const newColor = generateVariation(baseColor, variationIndex);
+  // Generate a new distinct color
+  const newColor = generateDistinctColor(className, existingColors);
+  classColorMap.set(className, newColor);
   
-  // Ensure the new color is not too similar to existing colors
-  let attempts = 0;
-  let finalColor = newColor;
-  while (Array.from(classColorMap.values()).includes(finalColor) && attempts < 10) {
-    finalColor = generateVariation(baseColor, variationIndex + attempts);
-    attempts++;
-  }
-
-  classColorMap.set(className, finalColor);
-  return finalColor;
+  return newColor;
 };
 
 export const releaseColor = (className: string): void => {
