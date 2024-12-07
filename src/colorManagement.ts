@@ -6,10 +6,27 @@ interface HSLColor {
   l: number;
 }
 
-// Map to store class name to color assignments
 const classColorMap: Map<string, string> = new Map<string, string>();
 
-// Convert hex to HSL
+// Helper function to find similar class names
+function findSimilarClasses(className: string, existingClasses: string[]): string[] {
+  // Remove whitespace and convert to lowercase for comparison
+  const normalizedName = className.toLowerCase().replace(/\s+/g, '');
+  
+  return existingClasses.filter(existing => {
+    const normalizedExisting = existing.toLowerCase().replace(/\s+/g, '');
+    
+    // Check if they share the same base name (e.g., "Matte 1" in "Matte 1 A")
+    const baseNameMatch = normalizedName.slice(0, -1) === normalizedExisting.slice(0, -1);
+    
+    // Check if they only differ by last character (e.g., A vs B)
+    const diffByLastChar = normalizedName.slice(0, -1) === normalizedExisting.slice(0, -1) &&
+                          normalizedName !== normalizedExisting;
+    
+    return baseNameMatch || diffByLastChar;
+  });
+}
+
 function hexToHSL(hex: string): HSLColor {
   hex = hex.replace(/^#/, '');
   const r = parseInt(hex.slice(0, 2), 16) / 255;
@@ -36,7 +53,6 @@ function hexToHSL(hex: string): HSLColor {
   return { h: h * 360, s: s * 100, l: l * 100 };
 }
 
-// Convert HSL to hex
 function HSLToHex({ h, s, l }: HSLColor): string {
   h /= 360;
   s /= 100;
@@ -65,60 +81,71 @@ function HSLToHex({ h, s, l }: HSLColor): string {
   return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
 }
 
-// Calculate color difference using Delta E
 function getColorDifference(color1: HSLColor, color2: HSLColor): number {
-  // Weighted differences for HSL
   const hDiff = Math.abs(color1.h - color2.h);
   const sDiff = Math.abs(color1.s - color2.s);
   const lDiff = Math.abs(color1.l - color2.l);
   
-  // Normalize hue difference considering the circular nature of hue
   const normalizedHDiff = Math.min(hDiff, 360 - hDiff);
   
-  // Weight the differences (hue differences are most important for distinction)
   return normalizedHDiff * 0.7 + sDiff * 0.2 + lDiff * 0.1;
 }
 
-// Generate a base color using the class name
-function generateBaseHue(className: string): number {
-  // Use string hash to generate initial hue
+function generateBaseHue(className: string, similarClasses: string[]): number {
+  // If there are similar classes, use their position in the sequence to determine base hue
+  if (similarClasses.length > 0) {
+    const position = similarClasses.length + 1;
+    // Use complementary colors for similar classes (180 degrees apart on color wheel)
+    return (position * 180) % 360;
+  }
+
+  // Otherwise, generate based on class name
   let hash = 0;
   for (let i = 0; i < className.length; i++) {
     hash = className.charCodeAt(i) + ((hash << 5) - hash);
   }
-  
-  // Convert hash to hue (0-360)
   return Math.abs(hash % 360);
 }
 
-// Check if a color is too similar to existing colors
-function isColorTooSimilar(newColor: HSLColor, existingColors: HSLColor[]): boolean {
-  const minDifference = 30; // Minimum difference threshold
+function isColorTooSimilar(newColor: HSLColor, existingColors: HSLColor[], isSimilarName: boolean): boolean {
+  // Require more difference for similar names
+  const minDifference = isSimilarName ? 90 : 30;
   return existingColors.some(existing => 
     getColorDifference(newColor, existing) < minDifference
   );
 }
 
-// Generate a new distinct color
-function generateDistinctColor(className: string, existingColors: HSLColor[]): string {
-  const baseHue = generateBaseHue(className);
+function generateDistinctColor(className: string, existingColors: HSLColor[], similarClasses: string[]): string {
+  const baseHue = generateBaseHue(className, similarClasses);
   let hue = baseHue;
-  let saturation = 70 + Math.random() * 20; // 70-90%
-  let lightness = 75 + Math.random() * 10;  // 75-85%
   
-  // Try different hues until we find a distinct color
+  // Adjust saturation and lightness based on whether there are similar classes
+  const isSimilarName = similarClasses.length > 0;
+  const baseSaturation = isSimilarName ? 85 : 70;
+  const baseLightness = isSimilarName ? 80 : 75;
+  
+  let saturation = baseSaturation + Math.random() * 10;
+  let lightness = baseLightness + Math.random() * 10;
+  
   let attempts = 0;
-  const maxAttempts = 36;
+  const maxAttempts = 72; // More attempts for better distribution
   const goldenAngle = 137.5;
   
   let color: HSLColor = { h: hue, s: saturation, l: lightness };
   
-  while (isColorTooSimilar(color, existingColors) && attempts < maxAttempts) {
-    // Rotate hue by golden angle
-    hue = (baseHue + goldenAngle * attempts) % 360;
-    // Alternate saturation and lightness
-    saturation = 70 + (attempts % 3) * 10;
-    lightness = 75 + (attempts % 2) * 10;
+  while (isColorTooSimilar(color, existingColors, isSimilarName) && attempts < maxAttempts) {
+    // For similar names, use larger hue jumps
+    const hueStep = isSimilarName ? goldenAngle * 2 : goldenAngle;
+    hue = (baseHue + hueStep * attempts) % 360;
+    
+    // Alternate saturation and lightness more dramatically for similar names
+    if (isSimilarName) {
+      saturation = baseSaturation + (attempts % 3) * 15;
+      lightness = baseLightness + (attempts % 2) * 15;
+    } else {
+      saturation = baseSaturation + (attempts % 3) * 10;
+      lightness = baseLightness + (attempts % 2) * 10;
+    }
     
     color = { h: hue, s: saturation, l: lightness };
     attempts++;
@@ -132,22 +159,20 @@ export const initializeColorSystem = (): void => {
 };
 
 export const generateBoxColor = (className: string, preferredColor?: string): string => {
-  // Return existing color if already assigned
   if (classColorMap.has(className)) {
     return classColorMap.get(className)!;
   }
 
-  // Use preferred color if provided and not in use
   if (preferredColor && !Array.from(classColorMap.values()).includes(preferredColor)) {
     classColorMap.set(className, preferredColor);
     return preferredColor;
   }
 
-  // Get all existing colors in HSL format
+  const existingClasses = Array.from(classColorMap.keys());
+  const similarClasses = findSimilarClasses(className, existingClasses);
   const existingColors = Array.from(classColorMap.values()).map(hexToHSL);
   
-  // Generate a new distinct color
-  const newColor = generateDistinctColor(className, existingColors);
+  const newColor = generateDistinctColor(className, existingColors, similarClasses);
   classColorMap.set(className, newColor);
   
   return newColor;
