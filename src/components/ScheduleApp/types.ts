@@ -1,4 +1,3 @@
-// Your existing interfaces
 export interface Box {
   id: number;
   className: string;
@@ -35,12 +34,6 @@ export interface Filter {
   label1: string;
   label2: string;
   condition: 'both' | 'neither' | 'x-not-y';
-}
-
-export interface ScheduleState {
-  boxes: Box[];
-  schedule: Schedule;
-  restrictions: Restriction[];
 }
 
 export const TIME_PERIODS = [
