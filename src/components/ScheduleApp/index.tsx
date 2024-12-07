@@ -114,19 +114,16 @@ export default function ScheduleApp() {
       <FilterPanel filter={filter} setFilter={setFilter} />
       
       <ScheduleGrid
-        boxes={boxes}
-        schedule={schedule}
-        restrictions={restrictions}
-        filter={filter}
-        draggedBox={draggedBox}
-        scheduleRef={scheduleRef}
-        setBoxes={setBoxes}
-        setSchedule={setSchedule}
-        activeBoxId={draggedBox?.id ?? null}
-        hoveredSlot={hoveredSlot}
-        onDrop={handleDrop}
-        onSlotClick={handleSlotClick}
-        onSlotHover={(day, time) => setHoveredSlot({ day, time })}
+  boxes={boxes}
+  schedule={schedule}
+  restrictions={restrictions}
+  filter={filter}
+  draggedBox={draggedBox}
+  scheduleRef={scheduleRef}
+  onDrop={handleDrop}
+  onSlotClick={handleSlotClick}
+  onSlotHover={(day, time) => setHoveredSlot({ day, time })}
+  
       />
       
       <div className="flex gap-4">
