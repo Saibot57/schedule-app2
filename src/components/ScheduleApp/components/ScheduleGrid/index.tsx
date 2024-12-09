@@ -97,7 +97,7 @@ export function ScheduleGrid({
         <tbody>
           {TIME_PERIODS.map((time) => (
             <tr key={time}>
-              <td className="border font-medium text-gray-700 text-right pr-2 py-2 w-28">
+              <td className="border font-medium text-gray-700 text-center px-2 py-2 w-28">
                 {time}
               </td>
               {DAYS.map((day) => (
