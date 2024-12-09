@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { ChevronDown, ChevronUp, HelpCircle } from 'lucide-react';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 import {
   Card,
   CardHeader,
@@ -118,14 +118,9 @@ export function Statistics({ schedule, boxes }: StatisticsProps) {
               {getClassStatistics().map(({ className, slots, count }) => (
                 <li key={className} className="flex items-center justify-between border-b last:border-0 pb-2">
                   <span className="font-medium">{className}</span>
-                  <Tooltip 
-                    content={formatSlotList(slots)}
-                    side="left"
-                    className="whitespace-pre-line"
-                  >
-                    <div className="flex items-center gap-1 text-gray-600 cursor-help">
+                  <Tooltip content={formatSlotList(slots)}>
+                    <div className="text-gray-600 cursor-help">
                       {count}
-                      <HelpCircle size={14} />
                     </div>
                   </Tooltip>
                 </li>
@@ -152,14 +147,9 @@ export function Statistics({ schedule, boxes }: StatisticsProps) {
               {getTeacherStatistics().map(({ teacher, classes, totalCount }) => (
                 <li key={teacher} className="flex items-center justify-between border-b last:border-0 pb-2">
                   <span className="font-medium">{teacher}</span>
-                  <Tooltip 
-                    content={formatTeacherSlots(classes)}
-                    side="left"
-                    className="whitespace-pre-line"
-                  >
-                    <div className="flex items-center gap-1 text-gray-600 cursor-help">
+                  <Tooltip content={formatTeacherSlots(classes)}>
+                    <div className="text-gray-600 cursor-help">
                       {totalCount}
-                      <HelpCircle size={14} />
                     </div>
                   </Tooltip>
                 </li>
