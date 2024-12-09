@@ -154,20 +154,37 @@ function generateDistinctColor(className: string, existingColors: HSLColor[], si
   return HSLToHex(color);
 }
 
+export const updateClassColor = (className: string, color: string): void => {
+  classColorMap.set(className, color);
+};
+
+export const getColorForClass = (className: string): string | undefined => {
+  return classColorMap.get(className);
+};
+
 export const initializeColorSystem = (): void => {
   classColorMap.clear();
 };
 
 export const generateBoxColor = (className: string, preferredColor?: string): string => {
-  if (classColorMap.has(className)) {
-    return classColorMap.get(className)!;
+  // First check if there's already a color in the map
+  const existingColor = classColorMap.get(className);
+  if (existingColor) {
+    // If we have a preferred color, update the map and return it
+    if (preferredColor) {
+      classColorMap.set(className, preferredColor);
+      return preferredColor;
+    }
+    return existingColor;
   }
 
+  // If no existing color and we have a preferred color that's not used
   if (preferredColor && !Array.from(classColorMap.values()).includes(preferredColor)) {
     classColorMap.set(className, preferredColor);
     return preferredColor;
   }
 
+  // Original color generation logic
   const existingClasses = Array.from(classColorMap.keys());
   const similarClasses = findSimilarClasses(className, existingClasses);
   const existingColors = Array.from(classColorMap.values()).map(hexToHSL);

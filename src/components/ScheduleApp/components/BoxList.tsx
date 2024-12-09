@@ -1,23 +1,24 @@
-'use client';
-
 import React, { useState } from 'react';
-import { X, Plus, Minus, Edit2, Check } from 'lucide-react';
+import { X, Plus, Minus, Edit2, Check, Palette } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card/card';
 import { Button } from '@/components/ui/button/button';
 import { Input } from '@/components/ui/input/input';
 import type { Box, Schedule } from '../types';
 import { getBoxPlacements } from '../utils/schedule';
+import { generateBoxColor, updateClassColor } from '../../../colorManagement';
 
 interface BoxListProps {
   boxes: Box[];
   schedule: Schedule;
   setBoxes: React.Dispatch<React.SetStateAction<Box[]>>;
-  onDragStart: (e: React.DragEvent, box: Box) => void;
+  onDragStart: (e: React.DragEvent<HTMLDivElement>, box: Box) => void;
 }
 
 export function BoxList({ boxes, schedule, setBoxes, onDragStart }: BoxListProps) {
   const [editingTeacher, setEditingTeacher] = useState<number | null>(null);
+  const [editingColor, setEditingColor] = useState<number | null>(null);
   const [newTeacher, setNewTeacher] = useState('');
+  const [newColor, setNewColor] = useState('');
 
   const handleDeleteBox = (id: number) => {
     if (window.confirm('Är du säker på att du vill ta bort denna låda?')) {
@@ -55,13 +56,40 @@ export function BoxList({ boxes, schedule, setBoxes, onDragStart }: BoxListProps
     setNewTeacher('');
   };
 
+  const handleColorEdit = (boxId: number) => {
+    const targetBox = boxes.find(box => box.id === boxId);
+    if (!targetBox) return;
+
+    const confirmMessage = `Detta kommer att ändra färgen för alla lådor med klassnamnet "${targetBox.className}". Vill du fortsätta?`;
+    if (!window.confirm(confirmMessage)) return;
+
+    // Update the color in colorManagement system
+    updateClassColor(targetBox.className, newColor);
+
+    // Update all boxes with the same class name
+    setBoxes((prev) =>
+      prev.map((box) => {
+        if (box.className === targetBox.className) {
+          return {
+            ...box,
+            color: newColor
+          };
+        }
+        return box;
+      })
+    );
+    
+    setEditingColor(null);
+    setNewColor('');
+  };
+
   return (
     <Card className="h-full">
       <CardHeader>
         <CardTitle>Tillgängliga lådor</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-4 gap-2"> {/* Increased from grid-cols-2 to grid-cols-4 */}
+        <div className="grid grid-cols-4 gap-2">
           {boxes
             .filter((box) => box.quantity > 0)
             .map((box) => (
@@ -78,6 +106,16 @@ export function BoxList({ boxes, schedule, setBoxes, onDragStart }: BoxListProps
                   className="absolute top-1 left-1 text-gray-500 hover:text-gray-700"
                 >
                   <X size={16} />
+                </button>
+
+                <button
+                  onClick={() => {
+                    setEditingColor(box.id);
+                    setNewColor(box.color);
+                  }}
+                  className="absolute top-1 right-1 text-gray-500 hover:text-gray-700"
+                >
+                  <Palette size={16} />
                 </button>
 
                 <div className="font-medium mb-1 mt-4 text-center break-words">
@@ -103,11 +141,32 @@ export function BoxList({ boxes, schedule, setBoxes, onDragStart }: BoxListProps
                   </button>
                 </div>
 
+                {/* Color edit form */}
+                {editingColor === box.id ? (
+                  <div className="flex items-center gap-1 mt-1">
+                    <Input
+                      type="color"
+                      value={newColor}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewColor(e.target.value)}
+                      className="h-6 w-full p-0 border-0"
+                    />
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 w-6 p-0"
+                      onClick={() => handleColorEdit(box.id)}
+                    >
+                      <Check size={14} />
+                    </Button>
+                  </div>
+                ) : null}
+
+                {/* Teacher edit form */}
                 {editingTeacher === box.id ? (
                   <div className="flex items-center gap-1 mt-1">
                     <Input
                       value={newTeacher}
-                      onChange={(e) => setNewTeacher(e.target.value)}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewTeacher(e.target.value)}
                       className="h-6 text-sm"
                       placeholder="Lärarens namn"
                     />
