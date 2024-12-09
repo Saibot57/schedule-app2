@@ -143,21 +143,25 @@ export function BoxList({ boxes, schedule, setBoxes, onDragStart }: BoxListProps
 
                 {/* Color edit form */}
                 {editingColor === box.id ? (
-                  <div className="flex items-center gap-1 mt-1">
-                    <Input
-                      type="color"
-                      value={newColor}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewColor(e.target.value)}
-                      className="h-6 w-full p-0 border-0"
-                    />
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-6 w-6 p-0"
-                      onClick={() => handleColorEdit(box.id)}
-                    >
-                      <Check size={14} />
-                    </Button>
+                  <div className="flex flex-col items-center gap-1 mt-1">
+                    <div className="flex items-center gap-1 w-full">
+                      <Input
+                        type="color"
+                        value={newColor}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewColor(e.target.value)}
+                        className="h-6 w-full p-0 border-0"
+                        title="Välj ny färg"
+                      />
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 w-6 p-0"
+                        onClick={() => handleColorEdit(box.id)}
+                      >
+                        <Check size={14} />
+                      </Button>
+                    </div>
+                    <span className="text-xs text-gray-600">Välj ny färg</span>
                   </div>
                 ) : null}
 
