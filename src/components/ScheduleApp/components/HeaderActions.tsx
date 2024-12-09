@@ -32,67 +32,59 @@ export function HeaderActions({
 }: HeaderActionsProps) {
   return (
     <div className="flex items-center space-x-2">
-      <Tooltip content={<span className="px-2 py-1">Exportera JSON</span>}>
-        <div>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onExportSchedule}
-            disabled={isExporting}
-          >
-            {isExporting ? (
-              <Loader2 className="h-5 w-5 animate-spin" />
-            ) : (
-              <Download className="h-5 w-5" />
-            )}
-          </Button>
-        </div>
+      <Tooltip content="Exportera JSON" side="bottom">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={onExportSchedule}
+          disabled={isExporting}
+        >
+          {isExporting ? (
+            <Loader2 className="h-5 w-5 animate-spin" />
+          ) : (
+            <Download className="h-5 w-5" />
+          )}
+        </Button>
       </Tooltip>
 
-      <Tooltip content={<span className="px-2 py-1">Importera JSON</span>}>
-        <div>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onImportSchedule}
-            disabled={isImporting}
-          >
-            {isImporting ? (
-              <Loader2 className="h-5 w-5 animate-spin" />
-            ) : (
-              <Upload className="h-5 w-5" />
-            )}
-          </Button>
-        </div>
+      <Tooltip content="Importera JSON" side="bottom">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={onImportSchedule}
+          disabled={isImporting}
+        >
+          {isImporting ? (
+            <Loader2 className="h-5 w-5 animate-spin" />
+          ) : (
+            <Upload className="h-5 w-5" />
+          )}
+        </Button>
       </Tooltip>
 
-      <Tooltip content={<span className="px-2 py-1">Spara som PDF</span>}>
-        <div>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onSaveSchedule}
-            disabled={isSaving}
-          >
-            {isSaving ? (
-              <Loader2 className="h-5 w-5 animate-spin" />
-            ) : (
-              <Printer className="h-5 w-5" />
-            )}
-          </Button>
-        </div>
+      <Tooltip content="Spara som PDF" side="bottom">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={onSaveSchedule}
+          disabled={isSaving}
+        >
+          {isSaving ? (
+            <Loader2 className="h-5 w-5 animate-spin" />
+          ) : (
+            <Printer className="h-5 w-5" />
+          )}
+        </Button>
       </Tooltip>
 
-      <Tooltip content={<span className="px-2 py-1">Rensa schema</span>}>
-        <div>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onClearSchedule}
-          >
-            <Trash2 className="h-5 w-5" />
-          </Button>
-        </div>
+      <Tooltip content="Rensa schema" side="bottom">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={onClearSchedule}
+        >
+          <Trash2 className="h-5 w-5" />
+        </Button>
       </Tooltip>
     </div>
   );
