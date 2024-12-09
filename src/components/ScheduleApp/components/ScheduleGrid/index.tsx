@@ -1,5 +1,3 @@
-'use client';
-
 import React from 'react';
 import { ScheduleSlot } from './ScheduleSlot';
 import { SlotInfo } from './SlotInfo';
@@ -47,7 +45,6 @@ export function ScheduleGrid({
     if (!box || !filter) return false;
     if (!filter.label1 && !filter.label2) return false;
 
-    // Convert empty strings to null for safer comparison
     const label1 = filter.label1 || null;
     const label2 = filter.label2 || null;
 
@@ -70,7 +67,6 @@ export function ScheduleGrid({
     e.preventDefault();
     if (!draggedBox) return;
 
-    // Check restrictions with updated function call
     if (checkRestrictions(draggedBox.id, day, time, schedule, boxes, restrictions)) {
       const proceed = window.confirm(
         'Denna placering bryter mot en restriktion. Vill du överskrida den tillfälligt?'
@@ -90,9 +86,9 @@ export function ScheduleGrid({
       <table className="w-full border-collapse">
         <thead>
           <tr>
-            <th className="p-2 border"></th>
+            <th className="border p-2 w-24"></th>
             {DAYS.map((day) => (
-              <th key={day} className="p-2 border font-medium text-gray-700">
+              <th key={day} className="border p-2 font-medium text-gray-700">
                 {day}
               </th>
             ))}
@@ -101,9 +97,11 @@ export function ScheduleGrid({
         <tbody>
           {TIME_PERIODS.map((time) => (
             <tr key={time}>
-              <td className="p-2 border font-medium text-gray-700">{time}</td>
+              <td className="border font-medium text-gray-700 text-right pr-2 py-2 w-28">
+                {time}
+              </td>
               {DAYS.map((day) => (
-                <td key={`${day}-${time}`} className="p-2 border relative">
+                <td key={`${day}-${time}`} className="border relative p-2">
                   <div className="grid grid-cols-5 gap-2 min-h-[5rem]">
                     {[...Array(5)].map((_, slotIndex) => {
                       const box = getBoxInSlot(day, time, slotIndex, schedule, boxes);
