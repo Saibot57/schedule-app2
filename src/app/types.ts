@@ -1,4 +1,3 @@
-// Your existing interfaces
 export interface Box {
   id: number;
   className: string;
@@ -29,6 +28,13 @@ export interface HoverInfo {
   time: string | null;
   slotIndex: number | null;
   show: boolean;
+}
+
+export type SearchTerm = string;
+
+export interface SearchCriterion {
+  type: 'single' | 'combination';
+  terms: SearchTerm[];
 }
 
 export interface Filter {
@@ -67,10 +73,8 @@ export function hasRestriction(box1Name: string, box2Name: string, restrictions:
   return restrictions.some(restriction => {
     const matchesPattern1 = checkRestriction(box1Name, restriction.pattern1);
     const matchesPattern2 = checkRestriction(box2Name, restriction.pattern2);
-    
     const matchesReverse1 = checkRestriction(box1Name, restriction.pattern2);
     const matchesReverse2 = checkRestriction(box2Name, restriction.pattern1);
-    
     return (matchesPattern1 && matchesPattern2) || (matchesReverse1 && matchesReverse2);
   });
 }

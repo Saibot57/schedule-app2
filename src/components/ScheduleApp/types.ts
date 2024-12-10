@@ -30,10 +30,23 @@ export interface HoverInfo {
   show: boolean;
 }
 
+export type SearchTerm = string;
+
+export interface SearchCriterion {
+  type: 'single' | 'combination';
+  terms: SearchTerm[];
+}
+
 export interface Filter {
   label1: string;
   label2: string;
   condition: 'both' | 'neither' | 'x-not-y';
+}
+
+export interface ScheduleState {
+  boxes: Box[];
+  schedule: Schedule;
+  restrictions: Restriction[];
 }
 
 export const TIME_PERIODS = [
@@ -60,10 +73,8 @@ export function hasRestriction(box1Name: string, box2Name: string, restrictions:
   return restrictions.some(restriction => {
     const matchesPattern1 = checkRestriction(box1Name, restriction.pattern1);
     const matchesPattern2 = checkRestriction(box2Name, restriction.pattern2);
-    
     const matchesReverse1 = checkRestriction(box1Name, restriction.pattern2);
     const matchesReverse2 = checkRestriction(box2Name, restriction.pattern1);
-    
     return (matchesPattern1 && matchesPattern2) || (matchesReverse1 && matchesReverse2);
   });
 }
