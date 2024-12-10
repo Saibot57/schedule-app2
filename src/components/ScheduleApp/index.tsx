@@ -4,10 +4,12 @@ import React, { useState, useEffect, useRef } from 'react';
 import { BoxCreationForm } from './components/BoxCreationForm';
 import { BoxList } from './components/BoxList';
 import { FilterPanel } from './components/FilterPanel';
+import { SearchPanel } from './components/SearchPanel';
 import { ScheduleGrid } from './components/ScheduleGrid';
 import { RestrictionsPanel } from './components/RestrictionsPanel';
 import { Statistics } from './components/Statistics';
-import type { Box, Schedule, Filter, Restriction } from './types';
+import type { Box, Schedule, Filter, Restriction, SearchCriterion } from './types';
+import { filterScheduleBySearch } from './utils/schedule';
 
 export default function ScheduleApp() {
   // State management
@@ -16,6 +18,7 @@ export default function ScheduleApp() {
   const [draggedBox, setDraggedBox] = useState<Box | null>(null);
   const [restrictions, setRestrictions] = useState<Restriction[]>([]);
   const [showRestrictions, setShowRestrictions] = useState(false);
+  const [searchCriteria, setSearchCriteria] = useState<SearchCriterion[]>([]);
   const [filter, setFilter] = useState<Filter>({
     label1: '',
     label2: '',
@@ -105,13 +108,17 @@ export default function ScheduleApp() {
     }
   };
 
+  // Filter schedule based on search criteria
+  const filteredSchedule = filterScheduleBySearch(schedule, boxes, searchCriteria);
+
   return (
     <div className="w-full mx-auto px-2 bg-white">
+      <SearchPanel onSearch={setSearchCriteria} />
       <FilterPanel filter={filter} setFilter={setFilter} />
       
       <ScheduleGrid
         boxes={boxes}
-        schedule={schedule}
+        schedule={filteredSchedule}
         restrictions={restrictions}
         filter={filter}
         draggedBox={draggedBox}
@@ -128,7 +135,7 @@ export default function ScheduleApp() {
         <div className="w-3/4">
           <BoxList
             boxes={boxes}
-            schedule={schedule}
+            schedule={filteredSchedule}
             setBoxes={setBoxes}
             onDragStart={handleDragStart}
           />
@@ -143,7 +150,7 @@ export default function ScheduleApp() {
           
           <Statistics
             boxes={boxes}
-            schedule={schedule}
+            schedule={filteredSchedule}
             scheduleRef={scheduleRef}
             setBoxes={setBoxes}
             setSchedule={setSchedule}
