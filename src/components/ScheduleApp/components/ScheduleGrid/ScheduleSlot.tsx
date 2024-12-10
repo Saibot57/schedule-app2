@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { ArrowDownCircle } from 'lucide-react';
 import type { Box, Restriction, Schedule } from '../../types';
-import { hasRestriction } from '../../utils/schedule';  // Fixed import
+import { hasRestriction } from '../../utils/schedule';
 
 interface ScheduleSlotProps {
   day: string;
@@ -39,18 +39,11 @@ export function ScheduleSlot({
 
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
-    console.log('Drop event triggered');
     
     const droppedBoxId = Number(e.dataTransfer.getData('boxId'));
-    console.log('Dropped box ID:', droppedBoxId);
-    
     const droppedBox = boxes.find(b => b.id === droppedBoxId);
-    console.log('Found box:', droppedBox);
 
-    if (!droppedBox) {
-      console.log('No box found with ID');
-      return;
-    }
+    if (!droppedBox) return;
 
     const timeSlotKey = `${day}-${time}`;
     const conflictingBoxes = Object.entries(schedule)
@@ -58,13 +51,9 @@ export function ScheduleSlot({
       .map(([, boxId]) => boxes.find(b => b.id === boxId))
       .filter((b): b is Box => b !== undefined);
 
-    console.log('Boxes in same time slot:', conflictingBoxes);
-
     const hasConflictResult = conflictingBoxes.some(existingBox => 
       hasRestriction(droppedBox.className, existingBox.className, restrictions)
     );
-
-    console.log('Has conflict:', hasConflictResult);
 
     if (hasConflictResult) {
       e.stopPropagation();
@@ -101,10 +90,11 @@ export function ScheduleSlot({
       className={`
         border rounded p-1 cursor-pointer relative 
         min-h-[4.5rem] flex flex-col justify-between
-        hover:z-10 hover:scale-105 transition-all
+        hover:z-10 hover:scale-105 transition-all duration-200
         ${!box ? 'border-dashed border-gray-300' : ''}
         ${isHighlighted ? 'ring-2 ring-offset-2 ring-yellow-500' : ''}
         ${isRestricted ? 'ring-2 ring-offset-2 ring-red-500 shake' : ''}
+        w-full
       `}
       style={{
         ...(box ? { backgroundColor: box.color } : {}),
@@ -128,7 +118,7 @@ export function ScheduleSlot({
       `}</style>
       {box && (
         <>
-          <div className="text-[0.65rem] leading-tight">
+          <div className="text-[0.65rem] leading-tight flex-grow">
             <div className="font-medium mb-0.5 break-words">{box.className}</div>
             <div className="text-gray-600 break-words">{box.teacher}</div>
           </div>

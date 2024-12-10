@@ -40,6 +40,19 @@ export function ScheduleGrid({
     e.dataTransfer.dropEffect = 'move';
   };
 
+  function getVisibleSlots(day: string, time: string): Array<{ slotIndex: number; box: Box }> {
+    const slots: Array<{ slotIndex: number; box: Box }> = [];
+    
+    for (let slotIndex = 0; slotIndex < 5; slotIndex++) {
+      const box = getBoxInSlot(day, time, slotIndex, schedule, boxes);
+      if (box) {
+        slots.push({ slotIndex, box });
+      }
+    }
+    
+    return slots;
+  }
+
   const shouldHighlightSlot = (day: string, time: string, slotIndex: number): boolean => {
     const box = getBoxInSlot(day, time, slotIndex, schedule, boxes);
     if (!box || !filter) return false;
@@ -100,53 +113,75 @@ export function ScheduleGrid({
               <td className="border font-medium text-gray-700 text-center px-2 py-2 w-28">
                 {time}
               </td>
-              {DAYS.map((day) => (
-                <td key={`${day}-${time}`} className="border relative p-2">
-                  <div className="grid grid-cols-5 gap-2 min-h-[5rem]">
-                    {[...Array(5)].map((_, slotIndex) => {
-                      const box = getBoxInSlot(day, time, slotIndex, schedule, boxes);
-                      const isHighlighted = shouldHighlightSlot(day, time, slotIndex);
+              {DAYS.map((day) => {
+                const visibleSlots = getVisibleSlots(day, time);
+                const totalSlots = visibleSlots.length || 1;
 
-                      return (
-                        <React.Fragment key={slotIndex}>
-                          <ScheduleSlot
-                            day={day}
-                            time={time}
-                            slotIndex={slotIndex}
-                            box={box}
-                            boxes={boxes}
-                            schedule={schedule}
-                            restrictions={restrictions}
-                            isHighlighted={isHighlighted}
-                            onDragOver={handleDragOver}
-                            onDrop={(e) => handleDrop(e, day, time, slotIndex)}
-                            onSlotClick={() => onSlotClick(day, time, slotIndex)}
-                            onMouseEnter={() => {
-                              onSlotHover(day, time);
-                              setHoverInfo({ day, time, slotIndex, show: true });
-                            }}
-                            onMouseLeave={() => {
-                              onSlotHover(null, null);
-                              setHoverInfo({ day: null, time: null, slotIndex: null, show: false });
-                            }}
-                          />
-                          {hoverInfo.show &&
-                            hoverInfo.day === day &&
-                            hoverInfo.time === time &&
-                            hoverInfo.slotIndex === slotIndex &&
-                            box && (
-                              <SlotInfo
+                return (
+                  <td key={`${day}-${time}`} className="border relative p-2">
+                    <div className={`grid gap-2 min-h-[5rem] transition-all duration-200`}
+                         style={{ gridTemplateColumns: `repeat(${totalSlots}, 1fr)` }}>
+                      {visibleSlots.length > 0 ? (
+                        visibleSlots.map(({ slotIndex, box }) => {
+                          const isHighlighted = shouldHighlightSlot(day, time, slotIndex);
+                          return (
+                            <React.Fragment key={slotIndex}>
+                              <ScheduleSlot
+                                day={day}
+                                time={time}
+                                slotIndex={slotIndex}
                                 box={box}
-                                conflicts={getConflicts(box.id, day, time, schedule, boxes, restrictions)}
                                 boxes={boxes}
+                                schedule={schedule}
+                                restrictions={restrictions}
+                                isHighlighted={isHighlighted}
+                                onDragOver={handleDragOver}
+                                onDrop={(e) => handleDrop(e, day, time, slotIndex)}
+                                onSlotClick={() => onSlotClick(day, time, slotIndex)}
+                                onMouseEnter={() => {
+                                  onSlotHover(day, time);
+                                  setHoverInfo({ day, time, slotIndex, show: true });
+                                }}
+                                onMouseLeave={() => {
+                                  onSlotHover(null, null);
+                                  setHoverInfo({ day: null, time: null, slotIndex: null, show: false });
+                                }}
                               />
-                            )}
-                        </React.Fragment>
-                      );
-                    })}
-                  </div>
-                </td>
-              ))}
+                              {hoverInfo.show &&
+                                hoverInfo.day === day &&
+                                hoverInfo.time === time &&
+                                hoverInfo.slotIndex === slotIndex &&
+                                box && (
+                                  <SlotInfo
+                                    box={box}
+                                    conflicts={getConflicts(box.id, day, time, schedule, boxes, restrictions)}
+                                    boxes={boxes}
+                                  />
+                                )}
+                            </React.Fragment>
+                          );
+                        })
+                      ) : (
+                        <ScheduleSlot
+                          day={day}
+                          time={time}
+                          slotIndex={0}
+                          box={undefined}
+                          boxes={boxes}
+                          schedule={schedule}
+                          restrictions={restrictions}
+                          isHighlighted={false}
+                          onDragOver={handleDragOver}
+                          onDrop={(e) => handleDrop(e, day, time, 0)}
+                          onSlotClick={() => onSlotClick(day, time, 0)}
+                          onMouseEnter={() => onSlotHover(day, time)}
+                          onMouseLeave={() => onSlotHover(null, null)}
+                        />
+                      )}
+                    </div>
+                  </td>
+                );
+              })}
             </tr>
           ))}
         </tbody>
